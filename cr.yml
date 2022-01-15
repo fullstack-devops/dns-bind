@@ -1,0 +1,3 @@
+owner: fullstack-devops
+git-repo: helm-charts
+token: ${HELM_REPO_TOKEN}

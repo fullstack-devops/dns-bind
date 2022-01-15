@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "dns-bind.fullname" . }}
+  labels:
+    {{- include "dns-bind.labels" . | nindent 4 }}
+data:
+  DEBUG_ENTRYPOINT: {{ .Values.envValues.debug_entrypoint | quote }}
+  DOCKER_LOGS: {{ .Values.envValues.docker_logs | quote }}
+  {{- if .Values.envValues.wildcard_dns }}
+  WILDCARD_DNS: {{ .Values.envValues.wildcard_dns | quote }}
+  {{- end }}
+  {{- if .Values.envValues.extra_hosts }}
+  EXTRA_HOSTS: {{ .Values.envValues.extra_hosts | quote }}
+  {{- end }}
+  DNSSEC_VALIDATE: {{ .Values.envValues.dnssec_validate | quote }}
+  {{- if .Values.envValues.dns_forwarder }}
+  DNS_FORWARDER: {{ .Values.envValues.dns_forwarder | quote }}
+  {{- end }}
+  TTL_TIME: {{ .Values.envValues.ttl_time | quote }}
+  REFRESH_TIME: {{ .Values.envValues.refresh_time | quote }}
+  RETRY_TIME: {{ .Values.envValues.retry_time | quote }}
+  EXPIRY_TIME: {{ .Values.envValues.expiry_time | quote }}
+  MAX_CACHE_TIME: {{ .Values.envValues.max_cache_time | quote }}
+  {{- if .Values.envValues.allow_query }}
+  ALLOW_QUERY: {{ .Values.envValues.allow_query | quote }}
+  {{- end }}
+  {{- if .Values.envValues.allow_recursion }}
+  ALLOW_RECURSION: {{ .Values.envValues.allow_recursion | quote }}
+  {{- end }}
