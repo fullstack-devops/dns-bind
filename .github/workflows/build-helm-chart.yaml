@@ -35,7 +35,7 @@ jobs:
       - name: Check out helm-charts
         uses: actions/checkout@v2
         with:
-          repository: ${{ github.repository_owner }}/helm-charts
+          repository: fullstack-devops/helm-charts
           ref: 'gh-pages'
           token: ${{ secrets.HELM_REPO_TOKEN }}
           path: helm-charts
