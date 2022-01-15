@@ -46,19 +46,8 @@ jobs:
         uses: helm/chart-releaser-action@v1.2.1
         with:
           charts_dir: helm
-          config: cr.yaml
+          config: cr.yml
           charts_repo_url: http://fullstack-devops.github.io/helm-charts/
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           HELM_REPO_TOKEN: "${{ secrets.HELM_REPO_TOKEN }}"
-
-      - name: Build and push image
-        uses: docker/build-push-action@v2
-        with:
-          builder: ${{ steps.buildx.outputs.name }}
-          context: ./docker-image/
-          platforms: ${{ env.IMAGE_PLATFORMS }}
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ needs.generate_tag.outputs.output }}
