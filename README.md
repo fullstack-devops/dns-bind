@@ -8,11 +8,6 @@ Bind caching DNS server based on Debian slim with support for DNS forwarders, in
 Thanks to [cytopia](https://github.com/cytopia) for the parent project.
 This repo also includes an helm chart repository
 
-| Docker Hub | Upstream Project |
-|------------|------------------|
-| <a href="https://hub.docker.com/r/cytopia/bind"><img height="82px" src="http://dockeri.co/image/cytopia/bind" /></a> | <a href="https://github.com/cytopia/devilbox" ><img height="82px" src="https://raw.githubusercontent.com/devilbox/artwork/master/submissions_banner/cytopia/01/png/banner_256_trans.png" /></a> |
-
-
 ----
 
 **Table of Contents**
@@ -422,11 +417,6 @@ If `cytopia/bind` is not running, it does not affect the name resolution, becaus
 have entries in `/etc/resolv.conf`.
 
 
-## Support
-
-If you need support, join the Gitter Chat: [![Join the chat at https://gitter.im/devilbox/Lobby](https://badges.gitter.im/devilbox/Lobby.svg)](https://gitter.im/devilbox/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-
 ## License
 
-**[MIT License](LICENSE.md)**
+**[Apache-2.0 License ](LICENSE)**
