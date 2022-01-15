@@ -32,8 +32,16 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
+      - name: Check out helm-charts
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ github.repository_owner }}/helm-charts
+          ref: 'gh-pages'
+          token: ${{ secrets.HELM_REPO_TOKEN }}
+          path: helm-charts
 
       - name: Configure Git
+        working-directory: helm-charts
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
@@ -45,9 +53,9 @@ jobs:
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.2.1
         with:
-          charts_dir: helm
+          charts_dir: ./
           config: cr.yml
-          charts_repo_url: http://fullstack-devops.github.io/helm-charts/
+          charts_repo_url: https://fullstack-devops.github.io/helm-charts
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           HELM_REPO_TOKEN: "${{ secrets.HELM_REPO_TOKEN }}"
