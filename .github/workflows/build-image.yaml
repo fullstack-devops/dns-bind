@@ -1,7 +1,7 @@
 name: Build docker Image
 
 env:
-  PLATFORMS: linux/386,linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
+  IMAGE_PLATFORMS: linux/386,linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
 
 on:
   workflow_dispatch:
@@ -45,7 +45,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
         with:
-          platforms: ${PLATFORMS}
+          platforms: "${IMAGE_PLATFORMS}"
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v1
@@ -55,7 +55,7 @@ jobs:
         with:
           builder: ${{ steps.buildx.outputs.name }}
           context: ./docker-image/
-          platforms: ${PLATFORMS}
+          platforms: "${IMAGE_PLATFORMS}"
           push: true
           tags: |
             ghcr.io/${GITHUB_REPOSITORY}:latest
