@@ -57,11 +57,11 @@ log() {
 
 	if [ "${type}" = "ok" ]; then
 		if [ "${debug}" -gt "0" ]; then
-			printf "${clr_ok}[OK]   %s${clr_rst}\n" "${message}"
+			printf "${clr_ok}[OK]   %s${clr_rst}\n" "${message}" 1>&3
 		fi
 	elif [ "${type}" = "info" ]; then
 		if [ "${debug}" -gt "0" ]; then
-			printf "${clr_info}[INFO] %s${clr_rst}\n" "${message}"
+			printf "${clr_info}[INFO] %s${clr_rst}\n" "${message}" 1>&3
 		fi
 	elif [ "${type}" = "warn" ]; then
 		printf "${clr_warn}[WARN] %s${clr_rst}\n" "${message}" 1>&2	# stdout -> stderr
