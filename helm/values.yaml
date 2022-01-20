@@ -13,7 +13,7 @@ image:
 envValues:
   debug_entrypoint: 0
   docker_logs: 0
-  wildcard_dns: ""
+  wildcard_dns: "corp.tld=10.1.5.90"
   extra_hosts: ""
   dnssec_validate: "no"
   dns_forwarder: ""
@@ -27,10 +27,10 @@ envValues:
 
 serviceDns:
   mixedService: true
-  type: NodePort
+  type: LoadBalancer
   nodePort: ""
   externalTrafficPolicy: Local
-  loadBalancerIP: ""
+  loadBalancerIP: "10.1.5.99"
   loadBalancerIPv6: ""
   annotations:
     # metallb.universe.tf/address-pool: network-services

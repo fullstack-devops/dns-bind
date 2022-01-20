@@ -17,11 +17,11 @@ data:
   {{- if .Values.envValues.dns_forwarder }}
   DNS_FORWARDER: {{ .Values.envValues.dns_forwarder | quote }}
   {{- end }}
-  TTL_TIME: {{ .Values.envValues.ttl_time | quote }}
-  REFRESH_TIME: {{ .Values.envValues.refresh_time | quote }}
-  RETRY_TIME: {{ .Values.envValues.retry_time | quote }}
-  EXPIRY_TIME: {{ .Values.envValues.expiry_time | quote }}
-  MAX_CACHE_TIME: {{ .Values.envValues.max_cache_time | quote }}
+  TTL_TIME: {{ int .Values.envValues.ttl_time }}
+  REFRESH_TIME: {{ int .Values.envValues.refresh_time }}
+  RETRY_TIME: {{ int .Values.envValues.retry_time }}
+  EXPIRY_TIME: {{ int .Values.envValues.expiry_time }}
+  MAX_CACHE_TIME: {{ int .Values.envValues.max_cache_time }}
   {{- if .Values.envValues.allow_query }}
   ALLOW_QUERY: {{ .Values.envValues.allow_query | quote }}
   {{- end }}
