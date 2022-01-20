@@ -14,17 +14,28 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       output: ${{ steps.tag.outputs.tag }}
+      release_version: ${{ steps.tag.outputs.release_version }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
         with:
           ref: main
           fetch-depth: 0
-      - id: tag
+      - name: Set up awesome-ci
+        run: |
+          wget https://github.com/eksrvb/awesome-ci/releases/latest/download/awesome-ci
+          chmod +x awesome-ci
+      - name: set build Infos
+        run: ./awesome-ci getBuildInfos
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: export Infos
+        id: tag
         shell: bash
         run: |
           echo "Tag: $(git describe --abbrev=0)"
           echo "::set-output name=tag::$(git describe --abbrev=0)"
+          echo "::set-output name=release_version::$ACI_NEXT_VERSION"
  
   build-helm-chart:
     runs-on: ubuntu-latest
@@ -32,30 +43,39 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
+      - name: Set up awesome-ci
+        run: |
+          wget https://github.com/eksrvb/awesome-ci/releases/latest/download/awesome-ci
+          chmod +x awesome-ci
+
       - name: Check out helm-charts
         uses: actions/checkout@v2
         with:
           repository: fullstack-devops/helm-charts
-          ref: 'gh-pages'
           token: ${{ secrets.HELM_REPO_TOKEN }}
+          ref: gh-pages
+          persist-credentials: true
           path: helm-charts
+      
+      - name: Helm Installation
+        uses: azure/setup-helm@v1.1
+        with:
+          version: v3.7.2
 
-      - name: Configure Git
-        working-directory: helm-charts
+      - name: Helm Package
+        run: helm package ./helm --version "${{ needs.generate_tag.outputs.release_version }}" --app-version "${{ needs.generate_tag.outputs.release_version }}" -d out/
+      
+      - name: Helm 
+        env:
+          GITHUB_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-      - name: Update chart application version
-        run: |
-          sed -i -e "s/appVersion:.*/appVersion: ${{ needs.generate_tag.outputs.output }}/g" helm/Chart.yaml
-
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.2.1
-        with:
-          charts_dir: ./
-          config: cr.yml
-          charts_repo_url: https://fullstack-devops.github.io/helm-charts
-        env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          HELM_REPO_TOKEN: "${{ secrets.HELM_REPO_TOKEN }}"
+          helm repo index out/ --url https://github.com/fullstack-devops/helm-charts/releases/download/excalidraw-1.0.1/excalidraw-1.0.1.tgz --merge helm-charts/index.yaml
+          
+          CHART_PACKAGE_NAME="my-chart-0.1.0+$(git rev-parse --short "$GITHUB_SHA").tgz"
+          cd helm-chart-repository
+          git add "$CHART_PACKAGE_NAME"
+          git commit -m "$CHART_PACKAGE_NAME"
+          git push origin main
