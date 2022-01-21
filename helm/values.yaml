@@ -11,30 +11,31 @@ image:
   tag: ""
 
 envValues:
-  debug_entrypoint: 0
-  docker_logs: 0
+  debug_entrypoint: "0"
+  docker_logs: "0"
   wildcard_dns: "corp.tld=10.1.5.90"
-  extra_hosts: ""
+  extra_hosts:
   dnssec_validate: "no"
-  dns_forwarder: ""
+  dns_forwarder:
   ttl_time: 3600
   refresh_time: 1200
   retry_time: 180
   expiry_time: 1209600
   max_cache_time: 10800
-  allow_query: ""
-  allow_recursion: ""
+  allow_query: 
+  allow_recursion:
 
 serviceDns:
-  mixedService: true
   type: LoadBalancer
-  nodePort: ""
+  nodePort:
+  clusterIP:
+  externalIPs: {}
   externalTrafficPolicy: Local
-  loadBalancerIP: "10.1.5.99"
-  loadBalancerIPv6: ""
+  loadBalancerIP: 10.1.5.99
+  loadBalancerIPv6:
   annotations:
-    # metallb.universe.tf/address-pool: network-services
-    # metallb.universe.tf/allow-shared-ip: bind-svc
+    metallb.universe.tf/address-pool: network-services
+    metallb.universe.tf/allow-shared-ip: "true"
 
 
 imagePullSecrets: []
