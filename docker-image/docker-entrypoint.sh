@@ -49,26 +49,20 @@ log() {
 	local message="${2}"  # msg to print
 	local debug="${3}"    # 0: only warn and error, >0: ok and info
 
-	local clr_ok="\033[0;32m"
-	local clr_info="\033[0;34m"
-	local clr_warn="\033[0;33m"
-	local clr_err="\033[0;31m"
-	local clr_rst="\033[0m"
-
 	if [ "${type}" = "ok" ]; then
 		if [ "${debug}" -gt "0" ]; then
-			printf "${clr_ok}[OK]   %s${clr_rst}\n" "${message}" 1>&2
+			echo "[OK]   ${message}"
 		fi
 	elif [ "${type}" = "info" ]; then
 		if [ "${debug}" -gt "0" ]; then
-			printf "${clr_info}[INFO] %s${clr_rst}\n" "${message}" 1>&2
+			echo "[INFO] ${message}"
 		fi
 	elif [ "${type}" = "warn" ]; then
-		printf "${clr_warn}[WARN] %s${clr_rst}\n" "${message}" 1>&2	# stdout -> stderr
+		echo "[WARN] ${message}"
 	elif [ "${type}" = "err" ]; then
-		printf "${clr_err}[ERR]  %s${clr_rst}\n" "${message}" 1>&2	# stdout -> stderr
+		echo "[ERR]  ${message}"
 	else
-		printf "${clr_err}[???]  %s${clr_rst}\n" "${message}" 1>&2	# stdout -> stderr
+		echo "[???]  ${message}"
 	fi
 }
 
