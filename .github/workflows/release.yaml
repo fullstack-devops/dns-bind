@@ -92,9 +92,9 @@ jobs:
           cache-name: cache-outputs-modules
         with:
           path: out/
-          key: dns-bind-${{ github.event.pull_request.head.sha }}-${{ hashFiles('out/dns-bind*') }}
+          key: dns-bind-${{ github.sha }}-${{ hashFiles('out/dns-bind*') }}
           restore-keys: |
-            dns-bind-${{ github.event.pull_request.head.sha }}
+            dns-bind-${{ github.sha }}
 
   publish_release:
     runs-on: ubuntu-latest
@@ -111,7 +111,7 @@ jobs:
           cache-name: cache-outputs-modules
         with:
           path: out/
-          key: dns-bind-${{ github.event.pull_request.head.sha }}
+          key: dns-bind-${{ github.sha }}
 
       - name: Check out helm-charts
         uses: actions/checkout@v2
@@ -131,7 +131,7 @@ jobs:
 
       - name: Helm index
         env:
-          CHART_URL: "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate_infos.outputs.version }}/dns-bind-${{ needs.generate_infos.outputs.version }}.tgz"
+          CHART_URL: "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate_infos.outputs.version }}"
         run: |
           export
           helm repo index out/ --url "$CHART_URL" --merge helm-charts/index.yaml

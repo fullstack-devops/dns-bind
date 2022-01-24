@@ -131,9 +131,6 @@ jobs:
         env: #ACI_ARTIFACT_1_URL
           GITHUB_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
         run: |
-          git config user.name "$GITHUB_ACTOR"
-          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-
           helm repo index out/ --url "$ACI_ARTIFACT_1_URL" --merge helm-charts/index.yaml
           cp -f out/index.yaml helm-charts/index.yaml
 
