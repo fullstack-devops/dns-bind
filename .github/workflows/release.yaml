@@ -6,7 +6,7 @@ env:
 on:
   push:
     branches:
-      - "maim"
+      - "main"
     paths:
       - "docker-image/**"
       - "helm/**"
