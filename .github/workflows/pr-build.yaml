@@ -1,13 +1,16 @@
-name: Build helm chart
+name: Build container and chart
+
+env:
+  IMAGE_PLATFORMS: linux/386,linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
+  pull_request:
+    branches-ignore:
+      - "docu/**"
     paths:
       - "docker-image/**"
       - "helm/**"
+      - ".github/workflows/**"
 
 jobs:
   generate_infos:
@@ -30,17 +33,83 @@ jobs:
         id: tag
         shell: bash
         run: |
-          echo "Tag: $(git describe --abbrev=0)"
+          echo "Tag: $(git describe --abbrev=0), Version: $ACI_VERSION"
           echo "::set-output name=tag::$(git describe --abbrev=0)"
           echo "::set-output name=version::$ACI_VERSION"
           echo "::set-output name=pr::$ACI_PR"
- 
-  build-helm-chart:
+
+  build-image:
     runs-on: ubuntu-latest
-    needs: generate_tag
+    needs: generate_infos
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: ${{ env.IMAGE_PLATFORMS }}
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build and push image
+        uses: docker/build-push-action@v2
+        with:
+          builder: ${{ steps.buildx.outputs.name }}
+          context: ./docker-image/
+          platforms: ${{ env.IMAGE_PLATFORMS }}
+          push: false
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ needs.generate_infos.outputs.version }}
+
+  build-helm-chart:
+    runs-on: ubuntu-latest
+    needs: generate_infos
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
+      - name: Helm Installation
+        uses: azure/setup-helm@v1.1
+
+      - name: Helm Package
+        run: helm package ./helm --version "${{ needs.generate_infos.outputs.version }}" --app-version "${{ needs.generate_infos.outputs.version }}" -d out/
+
+      - name: Cache build outputs
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-outputs-modules
+        with:
+          path: out/
+          key: dns-bind-${{ github.event.pull_request.head.sha }}-${{ hashFiles('out/dns-bind*') }}
+          restore-keys: |
+            dns-bind-${{ github.event.pull_request.head.sha }}
+
+  publish_release:
+    runs-on: ubuntu-latest
+    needs: [generate_infos, build-image, build-helm-chart]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup awesome-ci
+        uses: fullstack-devops/awesome-ci-action@main
+
+      - name: get cached build outputs
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-outputs-modules
+        with:
+          path: out/
+          key: dns-bind-${{ github.event.pull_request.head.sha }}
 
       - name: Check out helm-charts
         uses: actions/checkout@v2
@@ -50,26 +119,23 @@ jobs:
           ref: gh-pages
           persist-credentials: true
           path: helm-charts
-      
-      - name: Helm Installation
-        uses: azure/setup-helm@v1.1
-        with:
-          version: v3.7.2
 
-      - name: Helm Package
-        run: helm package ./helm --version "${{ needs.generate_tag.outputs.release_version }}" --app-version "${{ needs.generate_tag.outputs.release_version }}" -d out/
-      
-      - name: Helm 
-        env:
+      #- name: Publish Release
+      #  run: awesome-ci release publish -releaseid "$ACI_RELEASE_ID" -asstes "file=out/$ARTIFACT1"
+      #  env:
+      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #    ACI_RELEASE_ID: ${{ needs.generate_infos.outputs.releaseid }}
+      #    ARTIFACT1: dns-bind-${{ needs.generate_infos.outputs.version }}.tgz
+
+      - name: Helm index
+        env: #ACI_ARTIFACT_1_URL
           GITHUB_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
         run: |
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-          helm repo index out/ --url https://github.com/fullstack-devops/helm-charts/releases/download/excalidraw-1.0.1/excalidraw-1.0.1.tgz --merge helm-charts/index.yaml
-          
-          CHART_PACKAGE_NAME="my-chart-0.1.0+$(git rev-parse --short "$GITHUB_SHA").tgz"
-          cd helm-chart-repository
-          git add "$CHART_PACKAGE_NAME"
-          git commit -m "$CHART_PACKAGE_NAME"
-          git push origin main
+          helm repo index out/ --url "$ACI_ARTIFACT_1_URL" --merge helm-charts/index.yaml
+
+          cd helm-charts
+          git status
+          cat index.yaml
