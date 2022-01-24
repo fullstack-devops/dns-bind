@@ -141,5 +141,6 @@ jobs:
 
           cd helm-charts
           git status
+          gi commit index.yaml -m "updated chart dns-bind in index.yaml"
           git push
           cat index.yaml
