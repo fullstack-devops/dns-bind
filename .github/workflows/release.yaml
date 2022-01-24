@@ -1,36 +1,48 @@
-name: Build docker Image
+name: Release container and chart
 
 env:
   IMAGE_PLATFORMS: linux/386,linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le
 
 on:
-  workflow_dispatch:
   push:
     branches:
-      - main
+      - "maim"
     paths:
       - "docker-image/**"
+      - "helm/**"
+      - ".github/workflows/**"
 
 jobs:
-  generate_tag:
+  generate_infos:
     runs-on: ubuntu-latest
     outputs:
-      output: ${{ steps.tag.outputs.tag }}
+      releaseid: ${{ steps.tag.outputs.releaseid }}
+      version: ${{ steps.tag.outputs.version }}
+      pr: ${{ steps.tag.outputs.pr }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
-        with:
-          ref: main
-          fetch-depth: 0
-      - id: tag
+      - name: Setup awesome-ci
+        uses: fullstack-devops/awesome-ci-action@main
+
+      - name: collect infos and create release
+        run: |
+          awesome-ci pr info
+          awesome-ci release create
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: collect infos
+        id: tag
         shell: bash
         run: |
-          echo "Tag: $(git describe --abbrev=0)"
-          echo "::set-output name=tag::$(git describe --abbrev=0)"
- 
+          echo "::set-output name=version::$ACI_VERSION"
+          echo "::set-output name=pr::$ACI_PR"
+          echo "::set-output name=releaseid::$ACI_RELEASE_ID"
+
   build-image:
     runs-on: ubuntu-latest
-    needs: generate_tag
+    needs: generate_infos
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
@@ -56,7 +68,78 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: ./docker-image/
           platforms: ${{ env.IMAGE_PLATFORMS }}
-          push: true
+          push: false
           tags: |
             ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ needs.generate_tag.outputs.output }}
+            ghcr.io/${{ github.repository }}:${{ needs.generate_infos.outputs.version }}
+
+  build-helm-chart:
+    runs-on: ubuntu-latest
+    needs: generate_infos
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
+      - name: Helm Installation
+        uses: azure/setup-helm@v1.1
+
+      - name: Helm Package
+        run: helm package ./helm --version "${{ needs.generate_infos.outputs.version }}" --app-version "${{ needs.generate_infos.outputs.version }}" -d out/
+
+      - name: Cache build outputs
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-outputs-modules
+        with:
+          path: out/
+          key: dns-bind-${{ github.event.pull_request.head.sha }}-${{ hashFiles('out/dns-bind*') }}
+          restore-keys: |
+            dns-bind-${{ github.event.pull_request.head.sha }}
+
+  publish_release:
+    runs-on: ubuntu-latest
+    needs: [generate_infos, build-image, build-helm-chart]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup awesome-ci
+        uses: fullstack-devops/awesome-ci-action@main
+
+      - name: get cached build outputs
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-outputs-modules
+        with:
+          path: out/
+          key: dns-bind-${{ github.event.pull_request.head.sha }}
+
+      - name: Check out helm-charts
+        uses: actions/checkout@v2
+        with:
+          repository: fullstack-devops/helm-charts
+          token: ${{ secrets.HELM_REPO_TOKEN }}
+          ref: gh-pages
+          persist-credentials: true
+          path: helm-charts
+
+      - name: Publish Release
+        run: awesome-ci release publish -releaseid "$ACI_RELEASE_ID" -asstes "file=out/$ARTIFACT1"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ACI_RELEASE_ID: ${{ needs.generate_infos.outputs.releaseid }}
+          ARTIFACT1: dns-bind-${{ needs.generate_infos.outputs.version }}.tgz
+
+      - name: Helm index
+        env:
+          GITHUB_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+          helm repo index out/ --url "$ACI_ARTIFACT_1_URL" --merge helm-charts/index.yaml
+          cp -f out/index.yaml helm-charts/index.yaml
+
+          cd helm-charts
+          git status
+          git push
+          cat index.yaml
