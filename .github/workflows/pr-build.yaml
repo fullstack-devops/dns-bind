@@ -135,6 +135,7 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
           helm repo index out/ --url "$ACI_ARTIFACT_1_URL" --merge helm-charts/index.yaml
+          cp -f out/index.yaml helm-charts/index.yaml
 
           cd helm-charts
           git status
