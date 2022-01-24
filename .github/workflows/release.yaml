@@ -131,9 +131,10 @@ jobs:
 
       - name: Helm index
         env:
-          GITHUB_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
+          CHART_URL: "https://github.com/${{ github.repository }}/releases/download/${{ needs.generate_infos.outputs.version }}/dns-bind-${{ needs.generate_infos.outputs.version }}.tgz"
         run: |
-          helm repo index out/ --url "$ACI_ARTIFACT_1_URL" --merge helm-charts/index.yaml
+          export
+          helm repo index out/ --url "$CHART_URL" --merge helm-charts/index.yaml
           cp -f out/index.yaml helm-charts/index.yaml
 
           cd helm-charts
