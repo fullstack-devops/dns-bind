@@ -1,5 +1,5 @@
 # dns-bind
-[![Build docker Image](https://github.com/fullstack-devops/dns-bind/actions/workflows/build-image.yaml/badge.svg?branch=main)](https://github.com/fullstack-devops/dns-bind/actions/workflows/build-image.yaml)
+[![Release container and chart](https://github.com/fullstack-devops/dns-bind/actions/workflows/release.yaml/badge.svg)](https://github.com/fullstack-devops/dns-bind/actions/workflows/release.yaml)
 
 ----
 
