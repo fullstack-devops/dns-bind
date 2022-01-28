@@ -13,7 +13,7 @@ image:
 envValues:
   debug_entrypoint: "0"
   docker_logs: "0"
-  wildcard_dns: "corp.tld=10.1.5.90"
+  wildcard_dns:
   extra_hosts:
   dnssec_validate: "no"
   dns_forwarder:
@@ -26,16 +26,16 @@ envValues:
   allow_recursion:
 
 serviceDns:
-  type: LoadBalancer
+  type: NodePort
   nodePort:
   clusterIP:
   externalIPs: {}
   externalTrafficPolicy: Local
-  loadBalancerIP: 10.1.5.99
+  loadBalancerIP:
   loadBalancerIPv6:
   annotations:
-    metallb.universe.tf/address-pool: network-services
-    metallb.universe.tf/allow-shared-ip: "true"
+    # metallb.universe.tf/address-pool: network-services
+    # metallb.universe.tf/allow-shared-ip: "true"
 
 
 imagePullSecrets: []
