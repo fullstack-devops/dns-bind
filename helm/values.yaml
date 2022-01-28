@@ -11,7 +11,7 @@ image:
   tag: ""
 
 envValues:
-  debug_entrypoint: "0"
+  debug_entrypoint: "1"
   docker_logs: "0"
   wildcard_dns:
   extra_hosts:
