@@ -68,7 +68,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           context: ./docker-image/
           platforms: ${{ env.IMAGE_PLATFORMS }}
-          push: false
+          push: true
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ needs.generate_infos.outputs.version }}
