@@ -52,7 +52,7 @@ spec:
           #     port: http
           envFrom:
             - configMapRef:
-                name: {{ .Release.Name }}-dns-bind
+                name: {{ .Release.Name }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
